@@ -1203,8 +1203,10 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
                     duration = ntohl(duration32);
                 }
             }
-            mLastTrack->meta->setInt64(
-                    kKeyDuration, (duration * 1000000) / mLastTrack->timescale);
+            if (duration != 0 && mLastTrack->timescale != 0) {
+                mLastTrack->meta->setInt64(
+                        kKeyDuration, (duration * 1000000) / mLastTrack->timescale);
+            }
 
             uint8_t lang[2];
             off64_t lang_offset;
@@ -1993,6 +1995,8 @@ status_t MPEG4Extractor::parseSegmentIndex(off64_t offset, size_t size) {
     if (!mDataSource->getUInt32(offset + 8, &timeScale)) {
         return ERROR_MALFORMED;
     }
+    if (timeScale < 1)
+        return ERROR_MALFORMED;
     ALOGV("sidx refid/timescale: %d/%d", referenceId, timeScale);
 
     uint64_t earliestPresentationTime;
